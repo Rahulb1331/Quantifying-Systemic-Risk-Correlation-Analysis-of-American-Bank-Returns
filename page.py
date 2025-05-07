@@ -45,7 +45,7 @@ def load_raw_dfs(dataset_links: dict) -> dict:
 bank_tickers = list(dataset_links.keys())
 
 # 3. Cache per-bank cleaning
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=True)
 def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
     df = df.copy()
     df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
@@ -75,7 +75,7 @@ def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
 
 
 # 4. Cache the merge of all banks
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=True)
 def load_and_merge_all_banks(dataset_links: dict, bank_tickers: list) -> pd.DataFrame:
     dfs = load_raw_dfs(dataset_links)
     cleaned = {t: clean_bank_df(dfs[t], t) for t in bank_tickers}
