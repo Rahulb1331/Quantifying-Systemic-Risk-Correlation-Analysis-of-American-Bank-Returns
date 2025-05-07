@@ -65,7 +65,7 @@ def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
     df[f'Change_{ticker}'] = (
         df['Change %']
           .str.rstrip('%')
-          .astype(float) #/ 100.0
+          .astype(float) / 100.0
     )
     df.drop(columns=['Vol.', 'Change %'], inplace=True)
     rename_map = {
