@@ -41,26 +41,6 @@ def load_raw_dfs(dataset_links: dict) -> dict:
         dfs[name] = pd.read_csv(direct_url)
     return dfs
 
-# Assign to variables
-T10Y3M = dfs["10YMinus3MTreasurySpread"]
-Y10Inflation = dfs["10YInflation"]
-EFFR = dfs["EFFR"]
-ICE_BOFA = dfs["ICE_BOFA"]
-D7ComPR = dfs["RIFSPPFAAD07NB"]
-VIXCLS = dfs["VIXCLS"]
-JPM = dfs["JPM"]
-BAC = dfs["BAC"]
-C = dfs["C"]
-GS = dfs["GS"]
-MS = dfs["MS"]
-WFC = dfs["WFC"]
-USB = dfs["USB"]
-PNC = dfs["PNC"]
-TFC = dfs["TFC"]
-BK = dfs["BK"]
-SCHW = dfs["SCHW"]
-COF = dfs["COF"]
-STT = dfs["STT"]
 
 bank_tickers = list(dataset_links.keys())
 
