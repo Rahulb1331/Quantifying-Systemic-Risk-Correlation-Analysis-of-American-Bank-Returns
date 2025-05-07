@@ -115,6 +115,10 @@ def transform_macros(macro_df: pd.DataFrame) -> pd.DataFrame:
     # 4f. Breakeven inflation: first diff and z-score
     df['d10YInfl'] = df['10YInflation'].diff()
     df['z10YInfl'] = (df['d10YInfl'] - df['d10YInfl'].mean()) / df['d10YInfl'].std()
+
+    for col in ['dVIXCLS','zVIXCLS','dEFFR','zEFFR','z10Y3M','dICE_BOFA','zICE_BOFA','dRIF','zRIF','d10YInfl', 'z10YInfl']:
+        df[col] = df[col].fillna(0, inplace=True)
+        
     return df
 
 # 5. Merge banks and macros into full panel
