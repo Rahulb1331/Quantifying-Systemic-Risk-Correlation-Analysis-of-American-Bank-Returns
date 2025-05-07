@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import streamlit as st
+import functools
 
 # Helper to convert Google Drive links to direct download URLs
 @st.cache_data(show_spinner=False)
