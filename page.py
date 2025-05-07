@@ -52,6 +52,47 @@ def merge_macros(links: dict) -> pd.DataFrame:
     macro_df = macro_df.sort_values('Date').reset_index(drop=True)
     return macro_df
 
+#3.a Preprocess the values replace the missing values
+@st.cache_data
+def preprocess_macros(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Handle nulls per macro series with tailored logic:
+    - VIXCLS: forward-fill (no interpolation, preserves jumps)
+    - EFFR: forward-fill (policy rate holds through non-trading days)
+    - 10YMinus3MTreasurySpread: forward-fill (term structure stable)
+    - ICE_BOFA: forward-fill (credit spread carries through weekends)
+    - RIFSPPFAAD07NB: forward-fill (CP rate holds until next trading day)
+    - 10YInflation: time interpolation (slow-moving expectation series)
+    """
+    df = df.sort_values('Date').set_index('Date')
+    
+    # 1) VIX: forward-fill then back-fill as fallback
+    df['VIXCLS'] = df['VIXCLS'].ffill().bfill()
+    
+    # 2) Fed Funds Rate: forward-fill, holds on weekends/holidays
+    df['EFFR'] = df['EFFR'].ffill().bfill()
+
+    # 3) Yield curve slope: forward-fill, preserves last known slope
+    df['10YMinus3MTreasurySpread'] = (
+        df['10YMinus3MTreasurySpread'].ffill().bfill()
+    )
+
+    # 4) High-Yield OAS: forward-fill, captures carry of spreads
+    df['ICE_BOFA'] = df['ICE_BOFA'].ffill().bfill()
+
+    # 5) Commercial Paper: forward-fill, no interpolation of jumps
+    df['RIFSPPFAAD07NB'] = df['RIFSPPFAAD07NB'].ffill().bfill()
+
+    # 6) Breakeven Inflation: linear time interpolation (expectations evolve gradually)
+    df['10YInflation'] = (
+        df['10YInflation']
+          .interpolate(method='time')
+          .ffill()
+          .bfill()
+    )
+
+    return df.reset_index()
+
 # 4. Transform macro series to stationary z-scores or differences
 @st.cache_data
 def transform_macros(macro_df: pd.DataFrame) -> pd.DataFrame:
@@ -80,6 +121,7 @@ def transform_macros(macro_df: pd.DataFrame) -> pd.DataFrame:
 @st.cache_data
 def build_full_panel(df_banks: pd.DataFrame, links: dict) -> pd.DataFrame:
     macro_raw = merge_macros(links)
+    macro_raw = preprocess_macros(macro_raw)
     macro_trans = transform_macros(macro_raw)
     full = pd.merge(df_banks, macro_trans, on='Date', how='left')
     return full
