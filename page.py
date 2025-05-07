@@ -54,6 +54,8 @@ def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
     df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
     def parse_vol(s):
         s = str(s).strip().upper()
+        if s.endswith("K"):
+            return float(s[:-1].replace(",", "")) * 1e3
         if s.endswith("M"):
             return float(s[:-1].replace(",", "")) * 1e6
         if s.endswith("B"):
