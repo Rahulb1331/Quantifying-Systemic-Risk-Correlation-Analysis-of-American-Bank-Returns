@@ -81,7 +81,6 @@ COF,
 STT]
 
 for i in list:
-    st.subheader(i)
     st.dataframe(i.head(10))
     st.markdown("---")
 
