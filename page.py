@@ -43,10 +43,10 @@ for name, url in dataset_links.items():
 
 # Assign to variables
 T10Y3M = dfs["10YMinus3MTreasurySpread"]
-10YInflation = dfs["10YInflation"]
+Y10Inflation = dfs["10YInflation"]
 EFFR = dfs["EFFR"]
 ICE_BOFA = dfs["ICE_BOFA"]
-7DComPR = dfs["RIFSPPFAAD07NB"]
+D7ComPR = dfs["RIFSPPFAAD07NB"]
 VIXCLS = dfs["VIXCLS"]
 JPM = dfs["JPM"]
 BAC = dfs["BAC"]
@@ -62,9 +62,9 @@ SCHW = dfs["SCHW"]
 COF = dfs["COF"]
 STT = dfs["STT"]
 
-list = [T10Y3M , 10YInflation, EFFR, 
+list = [T10Y3M , Y10Inflation, EFFR, 
 ICE_BOFA, 
-7DComPR,
+D7ComPR,
 VIXCLS, 
 JPM, 
 BAC,
