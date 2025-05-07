@@ -17,6 +17,9 @@ dataset_links = {
     "ICE_BOFA": "https://drive.google.com/file/d/1xGAx5l927t-90f8wrtgTquz9Rwl-3ffc/view?usp=drive_link",
     "RIFSPPFAAD07NB": "https://drive.google.com/file/d/1bTr0te7VVZm242zZX3eaE7UXfDlUxbet/view?usp=drive_link",
     "VIXCLS": "https://drive.google.com/file/d/1wDu78j344cxHXP4cY0Ol_4n_9nJI00wj/view?usp=drive_link",
+}
+
+banks_dataset_link = {
     "JPM": "https://drive.google.com/file/d/1OggspqOFXXbGC9C_VC1FlOrJufAPd8jE/view?usp=sharing",
     "BAC": "https://drive.google.com/file/d/146JFCXYlJC5ek-_OWYKPIzoq6xiQEOYd/view?usp=sharing",
     "C": "https://drive.google.com/file/d/1IbQFcJXobNiWRpCP7AfMhvTwQ_PBX3ib/view?usp=drive_link",
@@ -34,15 +37,15 @@ dataset_links = {
 
 # Download and load into DataFrames
 @st.cache_data(show_spinner=False)
-def load_raw_dfs(dataset_links: dict) -> dict:
+def load_raw_dfs(banks_dataset_link: dict) -> dict:
     dfs = {}
-    for name, url in dataset_links.items():
+    for name, url in banks_dataset_link.items():
         direct_url = gdrive_to_direct_link(url)
         dfs[name] = pd.read_csv(direct_url)
     return dfs
 
 
-bank_tickers = list(dataset_links.keys())
+bank_tickers = list(banks_dataset_link.keys())
 
 # 3. Cache per-bank cleaning
 @st.cache_data(show_spinner=True)
@@ -76,8 +79,8 @@ def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
 
 # 4. Cache the merge of all banks
 @st.cache_data(show_spinner=True)
-def load_and_merge_all_banks(dataset_links: dict, bank_tickers: list) -> pd.DataFrame:
-    dfs = load_raw_dfs(dataset_links)
+def load_and_merge_all_banks(banks_dataset_link: dict, bank_tickers: list) -> pd.DataFrame:
+    dfs = load_raw_dfs(banks_dataset_link)
     cleaned = {t: clean_bank_df(dfs[t], t) for t in bank_tickers}
     merged = cleaned[bank_tickers[0]]
     for t in bank_tickers[1:]:
@@ -86,6 +89,6 @@ def load_and_merge_all_banks(dataset_links: dict, bank_tickers: list) -> pd.Data
     merged.reset_index(drop=True, inplace=True)
     return merged
 
-df_merged = load_and_merge_all_banks(dataset_links, bank_tickers)
+df_merged = load_and_merge_all_banks(banks_dataset_link, bank_tickers)
 st.success(f"Merged {len(bank_tickers)} banks: {df_merged.shape[0]} rows × {df_merged.shape[1]} cols")
 st.dataframe(df_merged.head())
