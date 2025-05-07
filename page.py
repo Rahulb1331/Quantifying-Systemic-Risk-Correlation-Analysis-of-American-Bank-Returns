@@ -44,13 +44,6 @@ def load_raw_dfs(dataset_links: dict) -> dict:
 
 bank_tickers = list(dataset_links.keys())
 
-
-for i in bank_tickers:
-    st.subheader(i)
-    st.dataframe(i.head(10))
-    print(i.info())
-    st.markdown("---")
-
 # 3. Cache per-bank cleaning
 @st.cache_data(show_spinner=False)
 def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
