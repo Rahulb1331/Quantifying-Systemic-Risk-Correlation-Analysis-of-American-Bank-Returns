@@ -19,6 +19,18 @@ dataset_links = {
     "VIXCLS": "https://drive.google.com/file/d/1wDu78j344cxHXP4cY0Ol_4n_9nJI00wj/view?usp=drive_link",
 }
 
+@st.cache_data(show_spinner=False)
+def load_raw_dfs(dataset_links: dict) -> dict:
+    dfs = {}
+    for name, url in dataset_links.items():
+        direct_url = gdrive_to_direct_link(url)
+        dfs[name] = pd.read_csv(direct_url)
+    return dfs
+
+df = load_raw_dfs(dataset_links)
+print(df)
+
+
 banks_dataset_link = {
     "JPM": "https://drive.google.com/file/d/1OggspqOFXXbGC9C_VC1FlOrJufAPd8jE/view?usp=sharing",
     "BAC": "https://drive.google.com/file/d/146JFCXYlJC5ek-_OWYKPIzoq6xiQEOYd/view?usp=sharing",
