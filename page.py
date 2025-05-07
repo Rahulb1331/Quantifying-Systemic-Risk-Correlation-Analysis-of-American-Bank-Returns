@@ -28,8 +28,8 @@ def load_raw_dfs(dataset_links: dict) -> dict:
     return dfs
 
 df = load_raw_dfs(dataset_links)
-print(df)
-
+tickers = list(dataset_links.keys())
+(st.dataframe(df[t]) for t in tickers}
 
 banks_dataset_link = {
     "JPM": "https://drive.google.com/file/d/1OggspqOFXXbGC9C_VC1FlOrJufAPd8jE/view?usp=sharing",
