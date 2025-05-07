@@ -4,6 +4,7 @@ from datetime import datetime
 import streamlit as st
 
 # Helper to convert Google Drive links to direct download URLs
+@st.cache_data(show_spinner=False)
 def gdrive_to_direct_link(url):
     file_id = url.split("/d/")[1].split("/")[0]
     return f"https://drive.google.com/uc?export=download&id={file_id}"
@@ -32,14 +33,13 @@ dataset_links = {
 }
 
 # Download and load into DataFrames
-dfs = {}
-
-for name, url in dataset_links.items():
-    direct_url = gdrive_to_direct_link(url)
-    if name == "10YMinus3MTreasurySpread":
-        dfs[name] = pd.read_csv(direct_url, keep_default_na=True)
-    else:
+@st.cache_data(show_spinner=False)
+def load_raw_dfs(dataset_links: dict) -> dict:
+    dfs = {}
+    for name, url in dataset_links.items():
+        direct_url = gdrive_to_direct_link(url)
         dfs[name] = pd.read_csv(direct_url)
+    return dfs
 
 # Assign to variables
 T10Y3M = dfs["10YMinus3MTreasurySpread"]
@@ -62,27 +62,57 @@ SCHW = dfs["SCHW"]
 COF = dfs["COF"]
 STT = dfs["STT"]
 
-list = [T10Y3M , Y10Inflation, EFFR, 
-ICE_BOFA, 
-D7ComPR,
-VIXCLS, 
-JPM, 
-BAC,
-C, 
-GS, 
-MS,
-WFC,
-USB, 
-PNC, 
-TFC,
-BK, 
-SCHW,
-COF, 
-STT]
+bank_tickers = list(dataset_links.keys())
 
-for i in list:
+
+for i in bank_tickers:
     st.subheader(i)
     st.dataframe(i.head(10))
     print(i.info())
     st.markdown("---")
 
+# 3. Cache per-bank cleaning
+@st.cache_data(show_spinner=False)
+def clean_bank_df(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
+    df = df.copy()
+    df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
+    def parse_vol(s):
+        s = str(s).strip().upper()
+        if s.endswith("M"):
+            return float(s[:-1].replace(",", "")) * 1e6
+        if s.endswith("B"):
+            return float(s[:-1].replace(",", "")) * 1e9
+        return float(s.replace(",", ""))
+    df[f'Volume_{ticker}'] = df['Vol.'].apply(parse_vol)
+    df[f'Change_{ticker}'] = (
+        df['Change %']
+          .str.rstrip('%')
+          .astype(float) / 100.0
+    )
+    df.drop(columns=['Vol.', 'Change %'], inplace=True)
+    rename_map = {
+        'Price': f'Price_{ticker}',
+        'Open':  f'Open_{ticker}',
+        'High':  f'High_{ticker}',
+        'Low':   f'Low_{ticker}'
+    }
+    df.rename(columns=rename_map, inplace=True)
+    cols = ['Date'] + [c for c in df.columns if c.endswith(f'_{ticker}')]
+    return df[cols]
+
+
+# 4. Cache the merge of all banks
+@st.cache_data(show_spinner=False)
+def load_and_merge_all_banks(dataset_links: dict, bank_tickers: list) -> pd.DataFrame:
+    dfs = load_raw_dfs(dataset_links)
+    cleaned = {t: clean_bank_df(dfs[t], t) for t in bank_tickers}
+    merged = cleaned[bank_tickers[0]]
+    for t in bank_tickers[1:]:
+        merged = merged.merge(cleaned[t], on='Date', how='outer')
+    merged.sort_values('Date', inplace=True)
+    merged.reset_index(drop=True, inplace=True)
+    return merged
+
+df_merged = load_and_merge_all_banks(dataset_links, bank_tickers)
+st.success(f"Merged {len(bank_tickers)} banks: {df_merged.shape[0]} rows × {df_merged.shape[1]} cols")
+st.dataframe(df_merged.head())
