@@ -166,3 +166,5 @@ st.dataframe(df_merged.head())
 df_full = build_full_panel(df_merged, macro_links)
 st.success(f"Full panel: {df_full.shape[0]} rows × {df_full.shape[1]} cols")
 st.dataframe(df_full.head())
+
+print(df_full.info())
