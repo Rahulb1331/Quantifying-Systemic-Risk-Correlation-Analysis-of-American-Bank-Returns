@@ -83,6 +83,6 @@ STT]
 for i in list:
     st.subheader(i)
     st.dataframe(i.head(10))
-    st.dataframe(i.info())
+    print(i.info())
     st.markdown("---")
 
