@@ -98,26 +98,46 @@ def preprocess_macros(df: pd.DataFrame) -> pd.DataFrame:
 def transform_macros(macro_df: pd.DataFrame) -> pd.DataFrame:
     df = macro_df.copy()
     # 4a. VIX: first diff and z-score
-    df['dVIXCLS'] = df['VIXCLS'].diff()
-    df['zVIXCLS'] = (df['dVIXCLS'] - df['dVIXCLS'].mean()) / df['dVIXCLS'].std()
+   # df['dVIXCLS'] = df['VIXCLS'].diff()
+    #df['zVIXCLS'] = (df['dVIXCLS'] - df['dVIXCLS'].mean()) / df['dVIXCLS'].std()
     # 4b. EFFR: first diff and z-score
-    df['dEFFR'] = df['EFFR'].diff()
-    df['zEFFR'] = (df['dEFFR'] - df['dEFFR'].mean()) / df['dEFFR'].std()
+    #df['dEFFR'] = df['EFFR'].diff()
+    #df['zEFFR'] = (df['dEFFR'] - df['dEFFR'].mean()) / df['dEFFR'].std()
     # 4c. Treasury slope: level z-score
-    df['z10Y3M'] = (df['10YMinus3MTreasurySpread'] -
-                    df['10YMinus3MTreasurySpread'].mean()) / df['10YMinus3MTreasurySpread'].std()
+    #df['z10Y3M'] = (df['10YMinus3MTreasurySpread'] -
+     #               df['10YMinus3MTreasurySpread'].mean()) / df['10YMinus3MTreasurySpread'].std()
     # 4d. High-Yield OAS: first diff and z-score
-    df['dICE_BOFA'] = df['ICE_BOFA'].diff()
-    df['zICE_BOFA'] = (df['dICE_BOFA'] - df['dICE_BOFA'].mean()) / df['dICE_BOFA'].std()
+    #df['dICE_BOFA'] = df['ICE_BOFA'].diff()
+    #df['zICE_BOFA'] = (df['dICE_BOFA'] - df['dICE_BOFA'].mean()) / df['dICE_BOFA'].std()
     # 4e. Commercial Paper: first diff and z-score
-    df['dRIF'] = df['RIFSPPFAAD07NB'].diff()
-    df['zRIF'] = (df['dRIF'] - df['dRIF'].mean()) / df['dRIF'].std()
+    #df['dRIF'] = df['RIFSPPFAAD07NB'].diff()
+    #df['zRIF'] = (df['dRIF'] - df['dRIF'].mean()) / df['dRIF'].std()
     # 4f. Breakeven inflation: first diff and z-score
-    df['d10YInfl'] = df['10YInflation'].diff()
-    df['z10YInfl'] = (df['d10YInfl'] - df['d10YInfl'].mean()) / df['d10YInfl'].std()
+    #df['d10YInfl'] = df['10YInflation'].diff()
+    #df['z10YInfl'] = (df['d10YInfl'] - df['d10YInfl'].mean()) / df['d10YInfl'].std()
 
-    for col in ['dVIXCLS','zVIXCLS','dEFFR','zEFFR','z10Y3M','dICE_BOFA','zICE_BOFA','dRIF','zRIF','d10YInfl', 'z10YInfl']:
-        df[col] = df[col].fillna(0, inplace=True)
+    # 1) Differenced series (NaN → 0)
+    df['dVIXCLS'] = df['VIXCLS'].diff().fillna(0)
+    df['dEFFR']  = df['EFFR'].diff().fillna(0)
+    df['dICE_BOFA'] = df['ICE_BOFA'].diff().fillna(0)
+    df['dRIF']  = df['RIFSPPFAAD07NB'].diff().fillna(0)
+    df['d10YInfl'] = df['10YInflation'].diff().fillna(0)
+
+    # 2) Z‑score those differenced series
+    df['zVIXCLS']   = (df['dVIXCLS']   - df['dVIXCLS'].mean())   / df['dVIXCLS'].std()
+    df['zEFFR']     = (df['dEFFR']      - df['dEFFR'].mean())     / df['dEFFR'].std()
+    df['zICE_BOFA'] = (df['dICE_BOFA']  - df['dICE_BOFA'].mean()) / df['dICE_BOFA'].std()
+    df['zRIF']      = (df['dRIF']       - df['dRIF'].mean())      / df['dRIF'].std()
+    df['z10YInfl']  = (df['d10YInfl']   - df['d10YInfl'].mean())   / df['d10YInfl'].std()
+
+    # 3) Z‑score the slope (level, no diff)
+    df['z10Y3M'] = (df['10YMinus3MTreasurySpread'] 
+                    - df['10YMinus3MTreasurySpread'].mean()) \
+                   / df['10YMinus3MTreasurySpread'].std()
+
+    # 4) (Optional) fill any residual NaNs in z‑scores with 0
+    for col in ['zVIXCLS','zEFFR','z10Y3M','zICE_BOFA','zRIF','z10YInfl']:
+        df[col] = df[col].fillna(0)
         
     return df
 
